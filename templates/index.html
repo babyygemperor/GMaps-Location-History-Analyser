@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Google Maps Location History Distance Calculator</title>
+    <script>
+        function setEndDateToToday() {
+            var today = new Date();
+            var dd = String(today.getDate()).padStart(2, '0');
+            var mm = String(today.getMonth() + 1).padStart(2, '0'); //January is 0!
+            var yyyy = today.getFullYear();
+
+            today = yyyy + '-' + mm + '-' + dd;
+            document.getElementById('end_date').value = today;
+        }
+    </script>
+</head>
+<body>
+    <h1>Google Maps Location History Distance Calculator</h1>
+    <form method="POST" enctype="multipart/form-data">
+        <input type="date" name="start_date" required>
+        <input type="date" id="end_date" name="end_date" required>
+        <button type="button" onclick="setEndDateToToday()">Set end date to today</button>
+        <input type="file" name="file" accept=".json" required>
+        <input type="submit" value="Calculate Distance">
+    </form>
+    {% if total_distance %}
+    <h2>You have traveled approximately {{ total_distance|round(2) }} kilometers during this period.</h2>
+    <h2>This is equivalent to {{ around_the_earth|round(2) }} time around the Earth.</h2>
+    <h2>This is equivalent to {{ to_moon|round(2) }} trips to the Moon.</h2>
+    {% endif %}
+</body>
+</html>
