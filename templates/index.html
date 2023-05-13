@@ -1,7 +1,8 @@
 <!DOCTYPE html>
-<html>
+<html lang="en-GB">
 <head>
     <title>Google Maps Location History Distance Calculator</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
     <script>
         function setEndDateToToday() {
             var today = new Date();
@@ -15,18 +16,35 @@
     </script>
 </head>
 <body>
-    <h1>Google Maps Location History Distance Calculator</h1>
-    <form method="POST" enctype="multipart/form-data">
-        <input type="date" name="start_date" required>
-        <input type="date" id="end_date" name="end_date" required>
-        <button type="button" onclick="setEndDateToToday()">Set end date to today</button>
-        <input type="file" name="file" accept=".json" required>
-        <input type="submit" value="Calculate Distance">
-    </form>
-    {% if total_distance %}
-    <h2>You have traveled approximately {{ total_distance|round(2) }} kilometers during this period.</h2>
-    <h2>This is equivalent to {{ around_the_earth|round(2) }} time around the Earth.</h2>
-    <h2>This is equivalent to {{ to_moon|round(2) }} trips to the Moon.</h2>
-    {% endif %}
+    <div class="container">
+        <h1 class="text-center my-4">Google Maps Location History Distance Calculator</h1>
+        <div class="row">
+            <div class="col-lg-8 mx-auto">
+                <form method="POST" enctype="multipart/form-data">
+                    <div class="form-group">
+                        <label for="start_date">Start date:</label>
+                        <input class="form-control" type="date" id="start_date" name="start_date" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="end_date">End date:</label>
+                        <input class="form-control" type="date" id="end_date" name="end_date" required>
+                    </div>
+                    <div class="form-group">
+                        <button class="btn btn-secondary" type="button" onclick="setEndDateToToday()">Set end date to today</button>
+                    </div>
+                    <div class="form-group">
+                        <label for="file">Select JSON file:</label>
+                        <input class="form-control-file" type="file" id="file" name="file" accept=".json" required>
+                    </div>
+                    <input class="btn btn-primary" type="submit" value="Calculate Distance">
+                </form>
+            </div>
+        </div>
+        {% if total_distance %}
+        <h2 class="text-center my-4">You have travelled approximately {{ total_distance|round(2) }} kilometres during this period.</h2>
+        <h2 class="text-center my-4">This is equivalent to {{ around_the_earth|round(2) }} time around the Earth.</h2>
+        <h2 class="text-center my-4">This is equivalent to {{ to_moon|round(2) }} trips to the Moon.</h2>
+        {% endif %}
+    </div>
 </body>
 </html>

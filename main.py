@@ -32,9 +32,9 @@ def calculate_distance(data, start_date, end_date):
             if (lat1, lon1) == (0, 0) or (lat2, lon2) == (0, 0):
                 continue
 
-            total_distance += haversine((lat1, lon1), (lat2, lon2))
+            distance = haversine((lat1, lon1), (lat2, lon2))
+            total_distance += distance
 
-    # Convert the distance from kilometers to miles
     return total_distance
 
 
