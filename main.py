@@ -1,6 +1,5 @@
 from flask import Flask, request, render_template
-from haversine import haversine, Unit
-import pandas as pd
+from haversine import haversine
 import pytz
 import json
 import datetime
