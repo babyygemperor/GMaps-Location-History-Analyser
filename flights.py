@@ -1,4 +1,6 @@
 import json
+import requests
+
 from dateutil.parser import parse
 from math import radians, cos, sin, asin, sqrt
 
@@ -56,6 +58,44 @@ def calculate_average_velocity(flight):
     return average_velocity
 
 
+def merge_flights(flights, speed_tolerance=50, time_gap=30):
+    merged_flights = []
+    current_flight = flights[0]
+    merged_flights.append(current_flight)
+
+    for i in range(len(flights) - 1):
+        next_flight = flights[i + 1]
+        if should_merge(current_flight, next_flight, speed_tolerance, time_gap):
+            for flight in next_flight:
+                current_flight.append(flight)
+        else:
+            merged_flights.append(current_flight)
+            current_flight = next_flight
+    merged_flights.append(flights[-1])
+    return merged_flights
+
+
+def should_merge(flight1, flight2, speed_tolerance=50, time_gap=30):
+    # Parse end time of flight1 and start time of flight2
+    end_time_flight1 = flight1[-1]['timestamp']
+    start_time_flight2 = flight2[0]['timestamp']
+
+    # Calculate the time difference in minutes
+    time_diff = (start_time_flight2 - end_time_flight1).total_seconds() / 60
+
+    # Compare the speeds of the flights
+    speed_diff = abs(
+        (compute_flight_distance(flight1) / (flight1[-1]['timestamp'] - flight1[0]['timestamp']).total_seconds()) - (
+                compute_flight_distance(flight2) / (
+            (flight2[-1]['timestamp'] - flight2[0]['timestamp']).total_seconds())))
+
+    # Decide if the flights should be merged
+    if time_diff <= time_gap and speed_diff <= speed_tolerance:
+        return True
+
+    return False
+
+
 def identify_flights(routes):
     flights = []
     flight = []
@@ -92,8 +132,9 @@ def identify_flights(routes):
         if flight_distance > 0 and flight_duration > 0:
             flights.append(flight)
 
-    # Filter out the flights with distance less than 50 km or distance greater than 50 km but average velocity less
+    # Filter out the flights with distance less than 200 km or distance greater than 200 km but average velocity less
     # than 250 km/hr
+    flights = merge_flights(flights)
     flights = [flight for flight in flights if
                compute_flight_distance(flight) > 200 and calculate_average_velocity(flight) >= 250]
     return flights
@@ -120,8 +161,40 @@ def main():
         distance = compute_flight_distance(flight)
         print(
             f"Flight on date: {start_time.date()}, time: {str(start_time.time())[:8]}-{str(end_time.time())[:8]} "
-            f"from {flight[0]['latitude']}, {flight[0]['longitude']} to {flight[-1]['latitude']}, "
-            f"{flight[-1]['longitude']}. Duration: {duration}, Distance: {distance} km")
+            f"from {find_nearest_airport(flight[0]['latitude'], flight[0]['longitude'])} to "
+            f"{find_nearest_airport(flight[-1]['latitude'], flight[-1]['longitude'])}."
+            f"Duration: {duration}, Distance: {round(distance, 2)} km, "
+            f"Speed: {round(distance / duration.total_seconds() * 3600, 2)}")
+
+
+def get_city_name(lat, long):
+    headers = {"accept-language": "en"}
+    url = f"https://nominatim.openstreetmap.org/reverse?format=json&lat={lat}&lon={long}"
+    response = requests.get(url, headers=headers)
+    data = response.json()
+    if 'address' in data and 'city' in data['address']:
+        return data['address']['city']
+    elif 'address' in data and 'town' in data['address']:
+        return data['address']['town']
+    elif 'address' in data and 'village' in data['address']:
+        return data['address']['village']
+    else:
+        return "Location not identified"
+
+
+def find_nearest_airport(lat, lon):
+    username = "aamingem"  # Replace with your GeoNames username
+    url = f"http://api.geonames.org/findNearbyJSON?lat={lat}&lng={lon}&fcode=AIRP&username={username}"
+
+    response = requests.get(url)
+    data = response.json()
+
+    if len(data['geonames']) == 0:
+        return f"{lat}, {lon}"
+    if 'geonames' in data and len(data['geonames']) > 0:
+        return data['geonames'][0]['name']
+    else:
+        return f"{data['geonames'][0]['lat']}, {data['geonames'][0]['lng']}"
 
 
 if __name__ == "__main__":
