@@ -136,7 +136,8 @@ def identify_flights(routes):
     # than 250 km/hr
     flights = merge_flights(flights)
     flights = [flight for flight in flights if
-               compute_flight_distance(flight) > 200 and calculate_average_velocity(flight) >= 250]
+               compute_flight_distance(flight) > 200 and calculate_average_velocity(flight) >= 250 and haversine(
+                   flight[0]['latitude'], flight[0]['latitude'], flight[-1]['latitude'], flight[-1]['latitude']) > 50]
     return flights
 
 
@@ -147,24 +148,6 @@ def compute_flight_distance(flight):
         lon2, lat2 = flight[i]['longitude'], flight[i]['latitude']
         distance += haversine(lon1, lat1, lon2, lat2)
     return distance
-
-
-def main():
-    file = 'Records.json'
-    locations = read_location_history(file)
-    routes = get_routes(locations)
-    flights = identify_flights(routes)
-    for flight in flights:
-        start_time = flight[0]['timestamp']
-        end_time = flight[-1]['timestamp']
-        duration = end_time - start_time
-        distance = compute_flight_distance(flight)
-        print(
-            f"Flight on date: {start_time.date()}, time: {str(start_time.time())[:8]}-{str(end_time.time())[:8]} "
-            f"from {find_nearest_airport(flight[0]['latitude'], flight[0]['longitude'])} to "
-            f"{find_nearest_airport(flight[-1]['latitude'], flight[-1]['longitude'])}."
-            f"Duration: {duration}, Distance: {round(distance, 2)} km, "
-            f"Speed: {round(distance / duration.total_seconds() * 3600, 2)}")
 
 
 def get_city_name(lat, long):
@@ -184,7 +167,7 @@ def get_city_name(lat, long):
 
 def find_nearest_airport(lat, lon):
     username = "aamingem"  # Replace with your GeoNames username
-    url = f"http://api.geonames.org/findNearbyJSON?lat={lat}&lng={lon}&fcode=AIRP&username={username}"
+    url = f"https://api.geonames.org/findNearbyJSON?lat={lat}&lng={lon}&fcode=AIRP&username={username}"
 
     response = requests.get(url)
     data = response.json()
@@ -195,6 +178,24 @@ def find_nearest_airport(lat, lon):
         return data['geonames'][0]['name']
     else:
         return f"{data['geonames'][0]['lat']}, {data['geonames'][0]['lng']}"
+
+
+def main():
+    file = 'Records.json'
+    locations = read_location_history(file)
+    routes = get_routes(locations)
+    flights = identify_flights(routes)
+    for flight in flights:
+        start_time = flight[0]['timestamp']
+        end_time = flight[-1]['timestamp']
+        duration = end_time - start_time
+        distance = compute_flight_distance(flight)
+        print(
+            f"Flight on date: {start_time.date()}, time: {str(start_time.time())[:8]}-{str(end_time.time())[:8]} "
+            f"from {find_nearest_airport(flight[0]['latitude'], flight[0]['longitude'])} to "
+            f"{find_nearest_airport(flight[-1]['latitude'], flight[-1]['longitude'])}."
+            f"Duration: {duration}, Distance: {round(distance, 2)} km, "
+            f"Speed: {round(distance / duration.total_seconds() * 3600, 2)}")
 
 
 if __name__ == "__main__":
