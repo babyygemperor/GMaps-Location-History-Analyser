@@ -1,18 +1,18 @@
 from flask import Flask, request, render_template
+from flask_cors import CORS
 from haversine import haversine
 import pytz
 import json
 import datetime
 from dateutil import parser
+from statistics import mean
+
 
 app = Flask(__name__)
+CORS(app)
 
 
 def calculate_distance(data, start_date, end_date):
-    # Convert the provided dates into datetime objects
-    start_date = datetime.datetime.strptime(start_date, "%Y-%m-%d")
-    end_date = datetime.datetime.strptime(end_date, "%Y-%m-%d")
-
     # Make the start and end dates timezone-aware
     utc = pytz.UTC
     start_date = utc.localize(start_date)
@@ -46,8 +46,8 @@ def calculate_distance(data, start_date, end_date):
 def upload_file():
     locations = []
     if request.method == 'POST':
-        start_date = request.form['start_date']
-        end_date = request.form['end_date']
+        start_date = datetime.datetime.strptime(request.form['start_date'], "%Y-%m-%d")
+        end_date = datetime.datetime.strptime(request.form['end_date'], "%Y-%m-%d")
         file = request.files['file']
 
         if file:
@@ -60,13 +60,20 @@ def upload_file():
 
             # collect lat and lon
             for loc in data:
-                locations.append((loc['latitudeE7'] / 1e7, loc['longitudeE7'] / 1e7))
+                # Convert timestamp to datetime
+                loc_date = parser.parse(loc['timestamp'])
+                loc_date = loc_date.replace(tzinfo=None).replace(microsecond=0)
+                # Append only if loc_date is within start_date and end_date
+                if start_date <= loc_date <= end_date:
+                    locations.append((loc['latitudeE7'] / 1e7, loc['longitudeE7'] / 1e7))
+
+            avg_lat = mean([loc[0] for loc in locations])
+            avg_lon = mean([loc[1] for loc in locations])
 
             print(len(locations))
 
             return render_template('index.html', total_distance=total_distance, around_the_earth=around_the_earth,
-                                   to_moon=to_moon, locations=locations)
-
+                                   to_moon=to_moon, locations=locations, avg_lat=avg_lat, avg_lon=avg_lon)
     return render_template('index.html')
 
 

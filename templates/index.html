@@ -6,6 +6,7 @@
     <!-- Load Leaflet from CDN-->
     <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <script src="https://cdn.rawgit.com/Leaflet/Leaflet.heat/gh-pages/dist/leaflet-heat.js"></script>
     <script>
         function setEndDateToToday() {
             var today = new Date();
@@ -48,16 +49,17 @@
         <h2 class="text-center my-4">This is equivalent to {{ around_the_earth|round(2) }} time around the Earth.</h2>
         <h2 class="text-center my-4">This is equivalent to {{ to_moon|round(2) }} trips to the Moon.</h2>
         {% endif %}
-        <div id="mapid" style="height: 500px;"></div>
+        <div id="mapid" style="width: 100%; height: 600px;"></div>
         <script>
-            var mymap = L.map('mapid').setView([51.505, -0.09], 13);
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            var locations = [ {% for loc in locations %} [{{ loc[0] }}, {{ loc[1] }}, 0.5], {% endfor %} ];
+
+            var mymap = L.map('mapid').setView([{{ avg_lat }}, {{ avg_lon }}], 13);
+
+            L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
                 maxZoom: 19,
             }).addTo(mymap);
 
-            {% for loc in locations %}
-                L.marker([{{ loc[0] }}, {{ loc[1] }}]).addTo(mymap);
-            {% endfor %}
+            var heat = L.heatLayer(locations, {radius: 25}).addTo(mymap);
         </script>
     </div>
 </body>
