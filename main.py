@@ -3,6 +3,7 @@ from haversine import haversine
 import pytz
 import json
 import datetime
+from dateutil import parser
 
 app = Flask(__name__)
 
@@ -31,6 +32,10 @@ def calculate_distance(data, start_date, end_date):
             if (lat1, lon1) == (0, 0) or (lat2, lon2) == (0, 0):
                 continue
 
+            if abs(haversine((lat1, lon1), (lat2, lon2)) / (parser.parse(data[i]['timestamp']) - parser.parse(
+                    data[i + 1]['timestamp'])).total_seconds() * 3600) > 1200:
+                continue
+
             distance = haversine((lat1, lon1), (lat2, lon2))
             total_distance += distance
 
@@ -50,6 +55,7 @@ def upload_file():
             total_distance = calculate_distance(data, start_date, end_date)
             around_the_earth = total_distance / 40775
             to_moon = total_distance / 384400
+            total_distance = f'{round(total_distance, 2):,}'.replace(',', '\'')
             return render_template('index.html', total_distance=total_distance, around_the_earth=around_the_earth,
                                    to_moon=to_moon)
 
