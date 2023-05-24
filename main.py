@@ -44,6 +44,7 @@ def calculate_distance(data, start_date, end_date):
 
 @app.route('/', methods=['GET', 'POST'])
 def upload_file():
+    locations = []
     if request.method == 'POST':
         start_date = request.form['start_date']
         end_date = request.form['end_date']
@@ -56,8 +57,15 @@ def upload_file():
             around_the_earth = total_distance / 40775
             to_moon = total_distance / 384400
             total_distance = f'{round(total_distance, 2):,}'.replace(',', '\'')
+
+            # collect lat and lon
+            for loc in data:
+                locations.append((loc['latitudeE7'] / 1e7, loc['longitudeE7'] / 1e7))
+
+            print(len(locations))
+
             return render_template('index.html', total_distance=total_distance, around_the_earth=around_the_earth,
-                                   to_moon=to_moon)
+                                   to_moon=to_moon, locations=locations)
 
     return render_template('index.html')
 

@@ -3,6 +3,9 @@
 <head>
     <title>Google Maps Location History Distance Calculator</title>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+    <!-- Load Leaflet from CDN-->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
     <script>
         function setEndDateToToday() {
             var today = new Date();
@@ -45,6 +48,17 @@
         <h2 class="text-center my-4">This is equivalent to {{ around_the_earth|round(2) }} time around the Earth.</h2>
         <h2 class="text-center my-4">This is equivalent to {{ to_moon|round(2) }} trips to the Moon.</h2>
         {% endif %}
+        <div id="mapid" style="height: 500px;"></div>
+        <script>
+            var mymap = L.map('mapid').setView([51.505, -0.09], 13);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                maxZoom: 19,
+            }).addTo(mymap);
+
+            {% for loc in locations %}
+                L.marker([{{ loc[0] }}, {{ loc[1] }}]).addTo(mymap);
+            {% endfor %}
+        </script>
     </div>
 </body>
 </html>
