@@ -32,11 +32,12 @@ def calculate_distance(data, start_date, end_date):
             if (lat1, lon1) == (0, 0) or (lat2, lon2) == (0, 0):
                 continue
 
-            if abs(haversine((lat1, lon1), (lat2, lon2)) / (parser.parse(data[i]['timestamp']) - parser.parse(
+            distance = haversine((lat1, lon1), (lat2, lon2))
+
+            if abs(distance / (parser.parse(data[i]['timestamp']) - parser.parse(
                     data[i + 1]['timestamp'])).total_seconds() * 3600) > 1200:
                 continue
 
-            distance = haversine((lat1, lon1), (lat2, lon2))
             total_distance += distance
 
     return total_distance
@@ -59,13 +60,15 @@ def upload_file():
             total_distance = f'{round(total_distance, 2):,}'.replace(',', '\'')
 
             # collect lat and lon
-            for loc in data:
-                # Convert timestamp to datetime
-                loc_date = parser.parse(loc['timestamp'])
-                loc_date = loc_date.replace(tzinfo=None).replace(microsecond=0)
-                # Append only if loc_date is within start_date and end_date
-                if start_date <= loc_date <= end_date:
-                    locations.append((loc['latitudeE7'] / 1e7, loc['longitudeE7'] / 1e7))
+            for i in range(len(data)):
+                if i % 25 == 0:
+                    loc = data[i]
+                    # Convert timestamp to datetime
+                    loc_date = parser.parse(loc['timestamp'])
+                    loc_date = loc_date.replace(tzinfo=None).replace(microsecond=0)
+                    # Append only if loc_date is within start_date and end_date
+                    if start_date <= loc_date <= end_date:
+                        locations.append((loc['latitudeE7'] / 1e7, loc['longitudeE7'] / 1e7))
 
             avg_lat = mean([loc[0] for loc in locations])
             avg_lon = mean([loc[1] for loc in locations])
