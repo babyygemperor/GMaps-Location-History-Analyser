@@ -38,7 +38,7 @@ This application is a Flask-based web service for calculating the distance trave
 
 5. Run the application:
     ```sh
-    python app.py
+    python main.py
     ```
 
 6. Open a web browser and navigate to `http://localhost:5000` to use the application.
@@ -128,7 +128,7 @@ To run this script, you need to replace the username with your GeoNames username
 After these modifications, you can run the script from the command line:
 
 ```bash
-python flight_tracker.py
+python flights.py
 ```
 
 
